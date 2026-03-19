@@ -81,6 +81,9 @@ def _search_musicbrainz(query: str) -> dict | None:
     try:
         artist_hint, title_hint = _parse_artist_title(query)
 
+        # Rate limit: MusicBrainz requires max 1 request/second
+        time.sleep(1)
+
         # Strategy 1: Split artist + recording (most accurate)
         if artist_hint:
             result = musicbrainzngs.search_recordings(
@@ -118,11 +121,6 @@ def _search_musicbrainz(query: str) -> dict | None:
             if any(w in cand_artists for w in query_lower.split()[:2]):
                 rec = candidate
                 break
-        recordings = result.get("recording-list", [])
-        if not recordings:
-            return None
-
-        rec = recordings[0]
         title = rec.get("title", "Unknown")
         artists = ", ".join(
             a.get("name", "") for a in rec.get("artist-credit", [])

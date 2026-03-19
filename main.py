@@ -6,7 +6,7 @@ import tempfile
 import time
 import json
 
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_from_directory, abort
 
 from config import (
     PORT,
@@ -38,16 +38,57 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE_MB * 1024 * 1024
 
 # ── Rate Limiting (in-memory, per IP) ────────────────────
 RATE_LIMITS: dict[str, list[float]] = {}
+RATE_LIMIT_CLEANUP_COUNTER = 0
 
 
 def check_rate_limit(client_ip: str) -> bool:
+    global RATE_LIMIT_CLEANUP_COUNTER
     now = time.time()
     hour_ago = now - 3600
     requests_list = [t for t in RATE_LIMITS.get(client_ip, []) if t > hour_ago]
     if len(requests_list) >= MAX_REQUESTS_PER_HOUR:
         return False
     RATE_LIMITS[client_ip] = requests_list + [now]
+
+    # Cleanup old entries every 100 calls
+    RATE_LIMIT_CLEANUP_COUNTER += 1
+    if RATE_LIMIT_CLEANUP_COUNTER >= 100:
+        RATE_LIMIT_CLEANUP_COUNTER = 0
+        # Remove IP entries that have no recent requests
+        ips_to_remove = [ip for ip, times in RATE_LIMITS.items() if not times or all(t <= hour_ago for t in times)]
+        for ip in ips_to_remove:
+            del RATE_LIMITS[ip]
+
     return True
+
+
+# ── Search Cache ────────────────────────────────────────────
+SEARCH_CACHE: dict[str, tuple[dict, float]] = {}
+MAX_SEARCH_CACHE_SIZE = 100
+
+
+def get_cached_search(query: str) -> dict | None:
+    """Get cached search result if exists and less than 30 minutes old."""
+    cache_key = query.lower().strip()
+    if cache_key in SEARCH_CACHE:
+        result, timestamp = SEARCH_CACHE[cache_key]
+        if time.time() - timestamp < 1800:  # 30 minutes
+            return result
+        else:
+            del SEARCH_CACHE[cache_key]
+    return None
+
+
+def set_cached_search(query: str, result: dict) -> None:
+    """Store search result in cache with timestamp."""
+    cache_key = query.lower().strip()
+    if len(SEARCH_CACHE) >= MAX_SEARCH_CACHE_SIZE:
+        # Remove oldest half
+        items_to_remove = MAX_SEARCH_CACHE_SIZE // 2
+        oldest = sorted(SEARCH_CACHE.items(), key=lambda x: x[1][1])[:items_to_remove]
+        for key, _ in oldest:
+            del SEARCH_CACHE[key]
+    SEARCH_CACHE[cache_key] = (result, time.time())
 
 
 # ═══════════════════════════════════════════════════════════
@@ -81,7 +122,15 @@ def api_analyze_text():
         return jsonify({"error": "invalid_query", "message": "Please enter at least 3 characters."}), 400
 
     try:
+        # Check cache first
+        cached_result = get_cached_search(query)
+        if cached_result:
+            return jsonify(format_result_json(cached_result))
+
         result = analyze_from_text(query)
+        # Store in cache after successful analysis
+        if result and not result.get("error"):
+            set_cached_search(query, result)
         return jsonify(format_result_json(result))
     except Exception as e:
         logger.error("Text analysis error: %s", e)
@@ -131,7 +180,8 @@ def api_identify():
 
     temp_path = None
     try:
-        temp_path = tempfile.mktemp(suffix=f".{ext}")
+        fd, temp_path = tempfile.mkstemp(suffix=f".{ext}")
+        os.close(fd)
         audio_file.save(temp_path)
 
         # Check duration
@@ -144,9 +194,9 @@ def api_identify():
 
         result = quick_identify_audio(temp_path)
         if result and not result.get("error"):
-            return jsonify({"identified": True, "track": result, "temp_path": temp_path})
+            return jsonify({"identified": True, "track": result})
         else:
-            return jsonify({"identified": False, "temp_path": temp_path})
+            return jsonify({"identified": False})
     except Exception as e:
         logger.error("Identify error: %s", e)
         cleanup_temp_files(temp_path)
@@ -175,7 +225,8 @@ def api_analyze_audio():
 
     temp_path = None
     try:
-        temp_path = tempfile.mktemp(suffix=f".{ext}")
+        fd, temp_path = tempfile.mkstemp(suffix=f".{ext}")
+        os.close(fd)
         audio_file.save(temp_path)
 
         # Check duration
@@ -197,7 +248,16 @@ def api_analyze_audio():
 
 @app.route("/api/debug", methods=["GET"])
 def api_debug():
-    """Test all API connections."""
+    """Test all API connections (protected by DEBUG_KEY)."""
+    # Check for DEBUG_KEY protection
+    debug_key = os.getenv("DEBUG_KEY", "")
+    query_key = request.args.get("key", "")
+
+    # Allow if running locally or if key matches
+    is_local = request.remote_addr in ("127.0.0.1", "localhost", "::1")
+    if not is_local and (not debug_key or query_key != debug_key):
+        return jsonify({"error": "unauthorized", "message": "Debug endpoint requires valid DEBUG_KEY"}), 403
+
     lines = []
 
     # Test MusicBrainz
@@ -514,6 +574,37 @@ def format_result_json(result: dict) -> dict:
             "source": lyrics_data.get("source", "none"),
         },
     }
+
+
+# ═══════════════════════════════════════════════════════════
+# SECURITY & ERROR HANDLERS
+# ═══════════════════════════════════════════════════════════
+
+
+@app.after_request
+def add_security_headers(response):
+    """Add security and CORS headers to all responses."""
+    # Security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    # CORS headers for API routes
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+
+    return response
+
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    """Handle request entity too large (file too big)."""
+    return jsonify({
+        "error": "file_too_large",
+        "message": f"File exceeds maximum size of {MAX_FILE_SIZE_MB}MB"
+    }), 413
 
 
 # ═══════════════════════════════════════════════════════════

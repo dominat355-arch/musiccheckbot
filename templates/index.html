@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MusicCheck — Wedding Music Analyzer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
+    <meta name="description" content="Analyze any music track for wedding video suitability — score, mood, copyright risk, and placement suggestions.">
+    <meta property="og:title" content="MusicCheck — Wedding Music Analyzer">
+    <meta property="og:description" content="Analyze any music track for wedding video suitability.">
+    <meta property="og:type" content="website">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -651,6 +656,91 @@
         .footer a { color: var(--accent-dim); text-decoration: none; }
         .footer a:hover { text-decoration: underline; }
 
+        /* ── New Search Button ──────────────────────── */
+        .new-search-btn {
+            display: none;
+            margin: 24px auto;
+            padding: 12px 32px;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .new-search-btn:hover {
+            background: var(--accent);
+            color: var(--bg);
+        }
+        .new-search-btn.visible {
+            display: block;
+        }
+
+        /* ── Smooth Reveal Animations ───────────────── */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .results.visible .header-card,
+        .results.visible .quick-verdict-section,
+        .results.visible .mood-section,
+        .results.visible .placements-section,
+        .results.visible .copyright-section,
+        .results.visible .final-verdict-section,
+        .results.visible .thematic-section.visible,
+        .results.visible .lyrics-section.visible {
+            animation: fadeSlideUp 0.4s ease-out both;
+        }
+        .results.visible .header-card { animation-delay: 0s; }
+        .results.visible .quick-verdict-section { animation-delay: 0.05s; }
+        .results.visible .mood-section { animation-delay: 0.1s; }
+        .results.visible .placements-section { animation-delay: 0.15s; }
+        .results.visible .copyright-section { animation-delay: 0.2s; }
+        .results.visible .final-verdict-section { animation-delay: 0.25s; }
+        .results.visible .thematic-section { animation-delay: 0.3s; }
+        .results.visible .lyrics-section { animation-delay: 0.35s; }
+
+        /* ── Shortcut Hint ──────────────────────────── */
+        .shortcut-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+        .shortcut-hint kbd {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-family: inherit;
+            font-size: 11px;
+        }
+
+        /* ── Recent Searches ────────────────────────── */
+        .recent-searches {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .recent-searches.visible { display: flex; }
+        .recent-chip {
+            padding: 6px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .recent-chip:hover {
+            border-color: var(--accent-dim);
+            color: var(--text);
+        }
+
         /* ── Responsive ────────────────────────────────── */
         @media (max-width: 480px) {
             .header h1 { font-size: 22px; }
@@ -677,6 +767,8 @@
             <input type="text" id="searchInput" placeholder="Artist — Song Title  or  paste Spotify link" autocomplete="off">
             <button type="submit" class="btn" id="searchBtn">Analyze</button>
         </form>
+        <div class="shortcut-hint">Apasă <kbd>/</kbd> pentru focus rapid</div>
+        <div class="recent-searches" id="recentSearches"></div>
     </div>
 
     <div class="divider">or upload audio</div>
@@ -761,6 +853,8 @@
         </div>
 
     </div>
+
+    <button class="new-search-btn" id="newSearchBtn">🔄 Analiză nouă</button>
 </div>
 
 <div class="footer">
@@ -781,6 +875,12 @@ const statusText = $('statusText');
 const quickId = $('quickId');
 const errorMsg = $('errorMsg');
 const results = $('results');
+const newSearchBtn = $('newSearchBtn');
+const recentSearches = $('recentSearches');
+
+// ── State ────────────────────────────────
+let recentSearchHistory = [];
+let progressInterval = null;
 
 // ── Helpers ─────────────────────────────
 function showStatus(text) {
@@ -791,6 +891,68 @@ function showStatus(text) {
 
 function hideStatus() {
     status.classList.remove('visible');
+}
+
+function startProgress() {
+    const steps = [
+        'Căutare piesă...',
+        'Analiză audio...',
+        'Verificare versuri și conținut...',
+        'Generare raport...'
+    ];
+    let step = 0;
+    showStatus(steps[0]);
+    progressInterval = setInterval(() => {
+        step++;
+        if (step < steps.length) {
+            statusText.textContent = steps[step];
+        }
+    }, 2500);
+}
+
+function stopProgress() {
+    if (progressInterval) clearInterval(progressInterval);
+    progressInterval = null;
+}
+
+function addToRecentSearches(query) {
+    if (!recentSearchHistory.includes(query)) {
+        recentSearchHistory.unshift(query);
+        if (recentSearchHistory.length > 5) {
+            recentSearchHistory.pop();
+        }
+    }
+}
+
+function updateRecentSearchesUI() {
+    if (recentSearchHistory.length === 0) {
+        recentSearches.classList.remove('visible');
+        return;
+    }
+
+    let html = '';
+    recentSearchHistory.forEach(q => {
+        html += `<div class="recent-chip">${q}</div>`;
+    });
+    recentSearches.innerHTML = html;
+
+    // Add click handlers
+    document.querySelectorAll('.recent-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            searchInput.value = chip.textContent;
+            searchForm.dispatchEvent(new Event('submit'));
+        });
+    });
+}
+
+function showRecentSearches() {
+    if (recentSearchHistory.length > 0 && searchInput.value === '') {
+        recentSearches.classList.add('visible');
+    }
+}
+
+function hideRecentSearches() {
+    recentSearches.classList.remove('visible');
 }
 
 function showError(msg) {
@@ -805,6 +967,16 @@ function resetUI() {
     quickId.classList.remove('visible');
     errorMsg.classList.remove('visible');
     hideStatus();
+    newSearchBtn.classList.remove('visible');
+
+    // Reset all result sub-sections
+    ['headerCard', 'quickVerdictSection', 'moodSection', 'placementsSection',
+     'copyrightSection', 'verdictSection'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+    $('thematicSection').classList.remove('visible');
+    $('lyricsSection').classList.remove('visible');
 }
 
 function setLoading(on) {
@@ -1031,6 +1203,8 @@ function renderResults(data) {
 
     results.classList.add('visible');
     hideStatus();
+    stopProgress();
+    newSearchBtn.classList.add('visible');
 
     // Scroll to results
     results.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1044,13 +1218,14 @@ searchForm.addEventListener('submit', async (e) => {
 
     resetUI();
     setLoading(true);
+    hideRecentSearches();
 
     // Detect Spotify URL
     const isSpotifyUrl = query.includes('spotify.com/track/');
     const endpoint = isSpotifyUrl ? '/api/analyze/url' : '/api/analyze/text';
     const payload = isSpotifyUrl ? { url: query } : { query: query };
 
-    showStatus(isSpotifyUrl ? 'Analyzing Spotify link...' : `Searching for: ${query}...`);
+    startProgress();
 
     try {
         const resp = await fetch(endpoint, {
@@ -1060,9 +1235,13 @@ searchForm.addEventListener('submit', async (e) => {
         });
         const data = await resp.json();
         setLoading(false);
+        if (!data.error) {
+            addToRecentSearches(query);
+        }
         renderResults(data);
     } catch (err) {
         setLoading(false);
+        stopProgress();
         showError('Connection error. Please try again.');
     }
 });
@@ -1110,13 +1289,12 @@ async function handleAudioUpload(file) {
         return;
     }
 
-    showStatus('Uploading and identifying track...');
+    startProgress();
 
     const formData = new FormData();
     formData.append('audio', file);
 
     try {
-        showStatus('Analyzing audio — this may take 10-15 seconds...');
         const resp = await fetch('/api/analyze/audio', {
             method: 'POST',
             body: formData,
@@ -1126,12 +1304,38 @@ async function handleAudioUpload(file) {
         renderResults(data);
     } catch (err) {
         setLoading(false);
+        stopProgress();
         showError('Upload failed. Please try again.');
     }
 
     // Reset file input
     audioInput.value = '';
 }
+
+// ── New Search Button ───────────────────
+newSearchBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    resetUI();
+    searchInput.focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ── Recent Searches Event Listeners ─────
+searchInput.addEventListener('focus', () => {
+    showRecentSearches();
+});
+
+searchInput.addEventListener('blur', () => {
+    setTimeout(() => hideRecentSearches(), 200);
+});
+
+searchInput.addEventListener('input', () => {
+    if (searchInput.value === '') {
+        showRecentSearches();
+    } else {
+        hideRecentSearches();
+    }
+});
 
 // ── Keyboard shortcut ───────────────────
 document.addEventListener('keydown', (e) => {
