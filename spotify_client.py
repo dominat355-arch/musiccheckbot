@@ -65,10 +65,59 @@ def search_track(query: str) -> dict | None:
     return None
 
 
+def _parse_artist_title(query: str) -> tuple[str, str]:
+    """Try to split 'Artist - Title' or 'Artist Title' into components."""
+    # Try common separators
+    for sep in [" - ", " – ", " — ", " : "]:
+        if sep in query:
+            parts = query.split(sep, 1)
+            return parts[0].strip(), parts[1].strip()
+    # No separator — use full query as both artist hint and recording
+    return "", query
+
+
 def _search_musicbrainz(query: str) -> dict | None:
-    """Search MusicBrainz for a track."""
+    """Search MusicBrainz for a track — uses artist+recording fields for accuracy."""
     try:
-        result = musicbrainzngs.search_recordings(query=query, limit=1)
+        artist_hint, title_hint = _parse_artist_title(query)
+
+        # Strategy 1: Split artist + recording (most accurate)
+        if artist_hint:
+            result = musicbrainzngs.search_recordings(
+                artist=artist_hint, recording=title_hint, limit=3
+            )
+        else:
+            # Strategy 2: Try treating first word(s) as artist
+            words = query.split()
+            if len(words) >= 2:
+                # Try artist=first_word, recording=rest
+                result = musicbrainzngs.search_recordings(
+                    artist=words[0], recording=" ".join(words[1:]), limit=3
+                )
+                recs = result.get("recording-list", [])
+                if not recs:
+                    # Fallback: plain query search
+                    result = musicbrainzngs.search_recordings(query=query, limit=3)
+            else:
+                result = musicbrainzngs.search_recordings(query=query, limit=3)
+
+        recordings = result.get("recording-list", [])
+        if not recordings:
+            return None
+
+        # Pick best match — prefer recordings where artist credit matches query
+        rec = recordings[0]
+        query_lower = query.lower()
+        for candidate in recordings:
+            cand_artists = " ".join(
+                a.get("name", "") for a in candidate.get("artist-credit", [])
+                if isinstance(a, dict)
+            ).lower()
+            cand_title = candidate.get("title", "").lower()
+            # If both artist and title words appear, prefer this one
+            if any(w in cand_artists for w in query_lower.split()[:2]):
+                rec = candidate
+                break
         recordings = result.get("recording-list", [])
         if not recordings:
             return None

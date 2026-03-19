@@ -190,9 +190,8 @@ def recognize_audio(audio_path: str) -> dict | None:
     if result:
         return result
 
-    # Shazam fallback disabled — shazamio not available on Railway
-    # result = recognize_shazam(audio_path)
-    # if result:
-    #     return result
+    result = recognize_shazam(audio_path)
+    if result:
+        return result
 
     return None
