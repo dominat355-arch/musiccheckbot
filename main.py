@@ -74,16 +74,20 @@ app_telegram.add_handler(
 # ── Startup ──────────────────────────────────────────────
 
 if __name__ == "__main__":
+    import asyncio
+
+    # Python 3.12+ requires explicit event loop creation in threads
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
     webhook_full = WEBHOOK_URL if WEBHOOK_URL.endswith("/webhook") else f"{WEBHOOK_URL}/webhook"
 
     logger.info("Starting MusicCheckBot webhook on port %s...", PORT)
     logger.info("Webhook URL: %s", webhook_full)
 
-    # python-telegram-bot's run_webhook handles:
-    # - Starting the HTTP server
-    # - Setting the webhook with Telegram
-    # - Managing the event loop properly
-    # - Health check at /health (built-in)
     app_telegram.run_webhook(
         listen="0.0.0.0",
         port=PORT,
