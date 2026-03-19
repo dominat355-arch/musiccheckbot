@@ -28,14 +28,17 @@ def _get_token() -> str | None:
         logger.warning("Spotify credentials not configured.")
         return None
 
+    print(f"[SPOTIFY] Getting token... client_id={SPOTIFY_CLIENT_ID[:8]}..., secret={SPOTIFY_CLIENT_SECRET[:4]}...")
     for attempt in range(MAX_RETRIES + 1):
         try:
+            print(f"[SPOTIFY] Auth attempt {attempt+1}/{MAX_RETRIES+1}")
             resp = requests.post(
                 "https://accounts.spotify.com/api/token",
                 data={"grant_type": "client_credentials"},
                 auth=(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET),
                 timeout=API_TIMEOUT,
             )
+            print(f"[SPOTIFY] Auth response: {resp.status_code}")
             if resp.status_code == 200:
                 data = resp.json()
                 _token_cache["token"] = data["access_token"]
@@ -46,6 +49,7 @@ def _get_token() -> str | None:
                 logger.error("Spotify auth failed: %s %s", resp.status_code, resp.text[:200])
                 return None
         except requests.Timeout:
+            print(f"[SPOTIFY] Auth TIMEOUT (attempt {attempt+1}/{MAX_RETRIES+1})")
             logger.warning("Spotify auth timeout (attempt %d/%d)", attempt + 1, MAX_RETRIES + 1)
             if attempt < MAX_RETRIES:
                 time.sleep(1)
@@ -98,7 +102,9 @@ def _api_get(endpoint: str, params: dict = None) -> dict | None:
 
 def search_track(query: str) -> dict | None:
     """Search Spotify for a track by text query. Returns track info dict."""
+    print(f"[SPOTIFY] search_track called with: {query}")
     data = _api_get("/search", {"q": query, "type": "track", "limit": 1})
+    print(f"[SPOTIFY] search_track result: {type(data)} - {str(data)[:100] if data else 'None'}")
     if not data:
         return None
 
