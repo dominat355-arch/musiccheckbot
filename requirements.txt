@@ -10,4 +10,3 @@ librosa==0.10.1
 numpy==1.26.4
 musicbrainzngs==0.7.1
 asgiref==3.8.1
-shazamio==0.8.1

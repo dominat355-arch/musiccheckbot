@@ -190,8 +190,9 @@ def recognize_audio(audio_path: str) -> dict | None:
     if result:
         return result
 
-    result = recognize_shazam(audio_path)
-    if result:
-        return result
+    # Shazam disabled — shazamio requires Rust compiler not available on Render
+    # result = recognize_shazam(audio_path)
+    # if result:
+    #     return result
 
     return None
