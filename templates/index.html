@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicCheck — Wedding Music Analyzer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0b;
+            --surface: #141416;
+            --surface-2: #1c1c1f;
+            --surface-3: #242428;
+            --border: #2a2a2f;
+            --text: #e8e8ed;
+            --text-dim: #8b8b95;
+            --text-muted: #5a5a65;
+            --accent: #c9a84c;
+            --accent-dim: #a6893d;
+            --green: #4ade80;
+            --yellow: #facc15;
+            --red: #f87171;
+            --orange: #fb923c;
+            --blue: #60a5fa;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ── Header ─────────────────────────── */
+        .header {
+            padding: 40px 20px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+        .header h1 span { color: var(--accent); }
+        .header p {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        /* ── Container ──────────────────────── */
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+
+        /* ── Search Section ──────────────────── */
+        .search-section {
+            margin-top: 32px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 14px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            border-color: var(--accent-dim);
+        }
+        .input-group input::placeholder {
+            color: var(--text-muted);
+        }
+        .btn {
+            padding: 14px 24px;
+            background: var(--accent);
+            color: #0a0a0b;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+        .btn:hover { background: var(--accent-dim); }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Upload Zone ─────────────────────── */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent-dim);
+            background: var(--surface);
+        }
+        .upload-zone .icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+        .upload-zone .label {
+            font-size: 15px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+        .upload-zone .hint {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .upload-zone input[type="file"] { display: none; }
+
+        /* ── Status ──────────────────────────── */
+        .status {
+            margin-top: 24px;
+            padding: 16px 20px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+        .status.visible { display: flex; }
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status-text {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        /* ── Quick ID ────────────────────────── */
+        .quick-id {
+            margin-top: 16px;
+            padding: 16px 20px;
+            background: var(--surface-2);
+            border-radius: var(--radius);
+            border-left: 3px solid var(--green);
+            display: none;
+        }
+        .quick-id.visible { display: block; }
+        .quick-id .qi-title {
+            font-size: 13px;
+            color: var(--green);
+            font-weight: 600;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .quick-id .qi-track {
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .quick-id .qi-album {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        /* ── Results ─────────────────────────── */
+        .results {
+            margin-top: 24px;
+            display: none;
+        }
+        .results.visible { display: block; }
+
+        .result-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .result-card h2 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Track info card */
+        .track-main {
+            margin-bottom: 12px;
+        }
+        .track-main .artist {
+            font-size: 14px;
+            color: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .track-main .title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 2px;
+            letter-spacing: -0.3px;
+        }
+        .track-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .meta-item {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .meta-item span { color: var(--text); font-weight: 500; }
+
+        /* Features grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .feature-item {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 12px 14px;
+        }
+        .feature-item .f-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .feature-item .f-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .feature-item .f-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .feature-item.wide {
+            grid-column: 1 / -1;
+        }
+
+        /* Verdict card */
+        .verdict-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--surface-3);
+        }
+        .verdict-row:last-child { border-bottom: none; }
+        .verdict-row .v-label {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .verdict-row .v-value {
+            font-size: 14px;
+            font-weight: 600;
+            text-align: right;
+        }
+        .v-safe { color: var(--green); }
+        .v-caution { color: var(--yellow); }
+        .v-danger { color: var(--red); }
+        .v-medium { color: var(--orange); }
+
+        .placement-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .placement-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            background: var(--surface-3);
+            border-radius: 20px;
+            color: var(--text-dim);
+        }
+
+        /* Thematic warnings */
+        .thematic-item {
+            padding: 10px 14px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--red);
+        }
+        .thematic-item.medium { border-left-color: var(--orange); }
+        .thematic-item.low { border-left-color: var(--yellow); }
+        .thematic-item .t-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .thematic-item .t-category {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .thematic-item .t-severity {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .thematic-item .t-example {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+        .themes-clear {
+            padding: 12px 14px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            border-left: 3px solid var(--green);
+            font-size: 13px;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        /* Lyrics */
+        .lyrics-preview {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.8;
+            white-space: pre-line;
+            padding: 14px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .lyrics-link {
+            font-size: 13px;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .lyrics-link:hover { text-decoration: underline; }
+
+        /* Notes */
+        .note-item {
+            font-size: 13px;
+            color: var(--text-dim);
+            padding: 6px 0;
+            padding-left: 12px;
+            border-left: 2px solid var(--border);
+            margin-bottom: 6px;
+        }
+        .disclaimer {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Error */
+        .error-msg {
+            margin-top: 24px;
+            padding: 16px 20px;
+            background: #1a0a0a;
+            border: 1px solid #3a1a1a;
+            border-radius: var(--radius);
+            color: var(--red);
+            font-size: 14px;
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 32px 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .footer a { color: var(--accent-dim); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        /* ── Responsive ──────────────────────── */
+        @media (max-width: 480px) {
+            .header h1 { font-size: 22px; }
+            .input-group { flex-direction: column; }
+            .btn { text-align: center; }
+            .features-grid { grid-template-columns: 1fr; }
+            .track-main .title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><span>Music</span>Check</h1>
+    <p>Analyze any track for wedding video suitability</p>
+</div>
+
+<div class="container">
+
+    <!-- Search by name -->
+    <div class="search-section">
+        <form id="searchForm" class="input-group">
+            <input type="text" id="searchInput" placeholder="Artist — Song Title  or  paste Spotify link" autocomplete="off">
+            <button type="submit" class="btn" id="searchBtn">Analyze</button>
+        </form>
+    </div>
+
+    <div class="divider">or upload audio</div>
+
+    <!-- Upload zone -->
+    <div class="upload-zone" id="uploadZone">
+        <div class="icon">🎵</div>
+        <div class="label">Drop an audio file here or click to browse</div>
+        <div class="hint">MP3, M4A, WAV, OGG, FLAC, AAC — max 20MB</div>
+        <input type="file" id="audioInput" accept=".mp3,.m4a,.wav,.ogg,.flac,.aac,.oga">
+    </div>
+
+    <!-- Status -->
+    <div class="status" id="status">
+        <div class="spinner"></div>
+        <div class="status-text" id="statusText">Identifying track...</div>
+    </div>
+
+    <!-- Quick ID -->
+    <div class="quick-id" id="quickId">
+        <div class="qi-title">Track identified</div>
+        <div class="qi-track" id="qiTrack"></div>
+        <div class="qi-album" id="qiAlbum"></div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+
+        <!-- Track Info -->
+        <div class="result-card">
+            <h2>Track Info</h2>
+            <div class="track-main">
+                <div class="artist" id="rArtist"></div>
+                <div class="title" id="rTitle"></div>
+            </div>
+            <div class="track-meta" id="rMeta"></div>
+        </div>
+
+        <!-- Audio Features -->
+        <div class="result-card" id="featuresCard" style="display:none;">
+            <h2>Audio Analysis</h2>
+            <div class="features-grid" id="featuresGrid"></div>
+        </div>
+
+        <!-- Verdict -->
+        <div class="result-card">
+            <h2>Video Editing Verdict</h2>
+            <div id="verdictRows"></div>
+            <div class="placement-tags" id="placementTags"></div>
+        </div>
+
+        <!-- Thematic -->
+        <div class="result-card">
+            <h2>Thematic Analysis</h2>
+            <div id="thematicContent"></div>
+        </div>
+
+        <!-- Lyrics -->
+        <div class="result-card" id="lyricsCard">
+            <h2>Lyrics</h2>
+            <div id="lyricsContent"></div>
+        </div>
+
+        <!-- Notes -->
+        <div class="result-card" id="notesCard" style="display:none;">
+            <h2>Notes</h2>
+            <div id="notesContent"></div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    Built for wedding videographers — <a href="/api/debug" target="_blank">API Status</a>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// ── Elements ────────────────────────────
+const searchForm = $('searchForm');
+const searchInput = $('searchInput');
+const searchBtn = $('searchBtn');
+const uploadZone = $('uploadZone');
+const audioInput = $('audioInput');
+const status = $('status');
+const statusText = $('statusText');
+const quickId = $('quickId');
+const errorMsg = $('errorMsg');
+const results = $('results');
+
+// ── Helpers ─────────────────────────────
+function showStatus(text) {
+    statusText.textContent = text;
+    status.classList.add('visible');
+    errorMsg.classList.remove('visible');
+}
+
+function hideStatus() {
+    status.classList.remove('visible');
+}
+
+function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.add('visible');
+    hideStatus();
+    quickId.classList.remove('visible');
+}
+
+function resetUI() {
+    results.classList.remove('visible');
+    quickId.classList.remove('visible');
+    errorMsg.classList.remove('visible');
+    hideStatus();
+}
+
+function setLoading(on) {
+    searchBtn.disabled = on;
+    searchInput.disabled = on;
+}
+
+function verdictClass(text) {
+    if (!text) return '';
+    const t = text.toLowerCase();
+    if (t.includes('safe') || t.includes('clean') || t.includes('low')) return 'v-safe';
+    if (t.includes('caution') || t.includes('medium') || t.includes('strong') || t.includes('partial')) return 'v-caution';
+    if (t.includes('not recommended') || t.includes('explicit') || t.includes('high') || t.includes('multiple')) return 'v-danger';
+    return 'v-medium';
+}
+
+function thematicClass(severity) {
+    if (severity.includes('HIGH')) return '';
+    if (severity.includes('MEDIUM')) return 'medium';
+    return 'low';
+}
+
+// ── Render Results ──────────────────────
+function renderResults(data) {
+    if (data.error) {
+        showError(data.message || data.error);
+        return;
+    }
+
+    const t = data.track;
+    const f = data.features;
+    const v = data.verdict;
+    const th = data.thematic || [];
+    const ly = data.lyrics;
+
+    // Track info
+    $('rArtist').textContent = t.artist;
+    $('rTitle').textContent = t.title;
+
+    let metaHTML = '';
+    if (t.album) {
+        let albumText = t.album;
+        if (t.release_date) albumText += ` (${t.release_date.slice(0, 4)})`;
+        metaHTML += `<div class="meta-item">Album: <span>${albumText}</span></div>`;
+    }
+    if (t.duration) metaHTML += `<div class="meta-item">Duration: <span>${t.duration}</span></div>`;
+    if (t.source) metaHTML += `<div class="meta-item">Source: <span>${t.source}</span></div>`;
+    if (t.spotify_url) metaHTML += `<div class="meta-item"><a href="${t.spotify_url}" target="_blank" style="color:var(--green);text-decoration:none;">Open in Spotify</a></div>`;
+    $('rMeta').innerHTML = metaHTML;
+
+    // Features
+    if (f) {
+        $('featuresCard').style.display = '';
+        $('featuresGrid').innerHTML = `
+            <div class="feature-item">
+                <div class="f-label">BPM</div>
+                <div class="f-value">${Math.round(f.bpm)}</div>
+                <div class="f-desc">${f.bpm_label}</div>
+            </div>
+            <div class="feature-item">
+                <div class="f-label">Key</div>
+                <div class="f-value">${f.key}</div>
+                <div class="f-desc">${f.mode}</div>
+            </div>
+            <div class="feature-item">
+                <div class="f-label">Energy</div>
+                <div class="f-value">${f.energy}%</div>
+                <div class="f-desc">${f.energy_label}</div>
+            </div>
+            <div class="feature-item">
+                <div class="f-label">Mood</div>
+                <div class="f-value">${f.valence}%</div>
+                <div class="f-desc">${f.valence_label}</div>
+            </div>
+            <div class="feature-item">
+                <div class="f-label">Danceability</div>
+                <div class="f-value">${f.danceability}%</div>
+            </div>
+            <div class="feature-item">
+                <div class="f-label">Acousticness</div>
+                <div class="f-value">${f.acousticness}%</div>
+            </div>
+            ${f.instrumentalness > 10 ? `
+            <div class="feature-item">
+                <div class="f-label">Instrumentalness</div>
+                <div class="f-value">${f.instrumentalness}%</div>
+            </div>` : ''}
+            ${f.source && f.source !== 'Spotify' ? `
+            <div class="feature-item wide">
+                <div class="f-label">Analysis Source</div>
+                <div class="f-desc">${f.source}</div>
+            </div>` : ''}
+        `;
+    } else {
+        $('featuresCard').style.display = 'none';
+    }
+
+    // Verdict
+    let verdictHTML = '';
+    verdictHTML += `<div class="verdict-row"><div class="v-label">Wedding use</div><div class="v-value ${verdictClass(v.wedding)}">${v.wedding}</div></div>`;
+    verdictHTML += `<div class="verdict-row"><div class="v-label">Explicit content</div><div class="v-value ${verdictClass(v.explicit)}">${v.explicit}</div></div>`;
+    verdictHTML += `<div class="verdict-row"><div class="v-label">Copyright risk</div><div class="v-value ${verdictClass(v.copyright_risk)}">${v.copyright_risk}</div></div>`;
+    if (v.copyright_label && v.copyright_label !== 'Unknown') {
+        verdictHTML += `<div class="verdict-row"><div class="v-label">Label</div><div class="v-value" style="color:var(--text-dim)">${v.copyright_label}</div></div>`;
+    }
+    $('verdictRows').innerHTML = verdictHTML;
+
+    let placementHTML = '';
+    (v.placement || []).forEach(p => {
+        placementHTML += `<div class="placement-tag">${p}</div>`;
+    });
+    $('placementTags').innerHTML = placementHTML;
+
+    // Thematic
+    if (th.length > 0) {
+        let thHTML = '';
+        th.forEach(item => {
+            const cls = thematicClass(item.severity);
+            const example = item.examples && item.examples.length > 0 ? item.examples[0][1] : '';
+            thHTML += `
+                <div class="thematic-item ${cls}">
+                    <div class="t-header">
+                        <div class="t-category">${item.category}</div>
+                        <div class="t-severity">${item.severity}</div>
+                    </div>
+                    ${example ? `<div class="t-example">"${example}"</div>` : ''}
+                </div>`;
+        });
+        $('thematicContent').innerHTML = thHTML;
+    } else {
+        $('thematicContent').innerHTML = '<div class="themes-clear">All clear — no problematic themes detected</div>';
+    }
+
+    // Lyrics
+    let lyricsHTML = '';
+    if (ly && ly.preview) {
+        lyricsHTML += `<div class="lyrics-preview">${ly.preview}</div>`;
+    }
+    if (ly && ly.url) {
+        lyricsHTML += `<a class="lyrics-link" href="${ly.url}" target="_blank">View full lyrics →</a>`;
+    }
+    if (!lyricsHTML) {
+        lyricsHTML = '<div style="font-size:13px;color:var(--text-muted);">Lyrics not available</div>';
+    }
+    $('lyricsContent').innerHTML = lyricsHTML;
+
+    // Notes
+    const issues = v.issues || [];
+    const copyrightNote = v.copyright_note || '';
+    const disclaimer = v.copyright_disclaimer || '';
+    const notes = [...issues.filter(i => !i.startsWith('Theme:') && !i.startsWith('Note:'))];
+    if (copyrightNote) notes.push(copyrightNote);
+
+    if (notes.length > 0 || disclaimer) {
+        $('notesCard').style.display = '';
+        let notesHTML = '';
+        notes.forEach(n => { notesHTML += `<div class="note-item">${n}</div>`; });
+        if (disclaimer) notesHTML += `<div class="disclaimer">${disclaimer}</div>`;
+        $('notesContent').innerHTML = notesHTML;
+    } else {
+        $('notesCard').style.display = 'none';
+    }
+
+    results.classList.add('visible');
+    hideStatus();
+
+    // Scroll to results
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+
+// ── Search Handler ──────────────────────
+searchForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (!query || query.length < 3) return;
+
+    resetUI();
+    setLoading(true);
+
+    // Detect Spotify URL
+    const isSpotifyUrl = query.includes('spotify.com/track/');
+    const endpoint = isSpotifyUrl ? '/api/analyze/url' : '/api/analyze/text';
+    const payload = isSpotifyUrl ? { url: query } : { query: query };
+
+    showStatus(isSpotifyUrl ? 'Analyzing Spotify link...' : `Searching for: ${query}...`);
+
+    try {
+        const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        setLoading(false);
+        renderResults(data);
+    } catch (err) {
+        setLoading(false);
+        showError('Connection error. Please try again.');
+    }
+});
+
+
+// ── Upload Handlers ─────────────────────
+uploadZone.addEventListener('click', () => audioInput.click());
+
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) handleAudioUpload(files[0]);
+});
+
+audioInput.addEventListener('change', () => {
+    if (audioInput.files.length > 0) handleAudioUpload(audioInput.files[0]);
+});
+
+async function handleAudioUpload(file) {
+    resetUI();
+    setLoading(true);
+
+    // Validate extension
+    const ext = file.name.split('.').pop().toLowerCase();
+    const allowed = ['mp3', 'm4a', 'wav', 'ogg', 'flac', 'aac', 'oga'];
+    if (!allowed.includes(ext)) {
+        showError(`Unsupported format: .${ext}. Use: ${allowed.join(', ')}`);
+        setLoading(false);
+        return;
+    }
+
+    // Validate size
+    if (file.size > 20 * 1024 * 1024) {
+        showError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is 20MB.`);
+        setLoading(false);
+        return;
+    }
+
+    showStatus('Uploading and identifying track...');
+
+    const formData = new FormData();
+    formData.append('audio', file);
+
+    try {
+        // Full analysis (single request for simplicity)
+        showStatus('Analyzing audio — this may take 10-15 seconds...');
+        const resp = await fetch('/api/analyze/audio', {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await resp.json();
+        setLoading(false);
+        renderResults(data);
+    } catch (err) {
+        setLoading(false);
+        showError('Upload failed. Please try again.');
+    }
+
+    // Reset file input
+    audioInput.value = '';
+}
+
+// ── Keyboard shortcut ───────────────────
+document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+        e.preventDefault();
+        searchInput.focus();
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,12 +1,9 @@
-python-telegram-bot[webhooks]==21.7
-flask[async]==3.0.3
+flask==3.0.3
+gunicorn==21.2.0
 python-dotenv==1.0.1
 requests==2.31.0
-# spotipy removed — using direct requests for better Railway compatibility
-lyricsgenius==3.0.1
 better-profanity==0.7.0
 pydub==0.25.1
 librosa==0.10.1
 numpy==1.26.4
 musicbrainzngs==0.7.1
-asgiref==3.8.1
