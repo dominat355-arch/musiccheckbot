@@ -245,42 +245,128 @@ def api_debug():
 # ═══════════════════════════════════════════════════════════
 
 
-def _format_bpm_label(bpm):
-    if bpm < 70: return "slow"
-    elif bpm < 100: return "medium"
-    elif bpm < 130: return "fast"
-    else: return "very fast"
+def _bpm_desc(bpm):
+    if bpm < 65: return "foarte lent, contemplativ"
+    elif bpm < 85: return "lent, romantic, emotional"
+    elif bpm < 100: return "ritm natural, nici prea rapid nici prea lent"
+    elif bpm < 120: return "ritm moderat, flow natural"
+    elif bpm < 135: return "ritm energic, bun pentru highlights"
+    else: return "rapid, party vibe"
 
+def _energy_desc(e):
+    if e < 0.15: return "foarte calmă, intimă — perfectă pentru momente delicate"
+    elif e < 0.3: return "moderată — nu-ți copleșește, lași emoția să iasă în față"
+    elif e < 0.5: return "echilibrată — merge pe orice tip de montaj"
+    elif e < 0.7: return "energică — bună pentru highlights și recap"
+    else: return "intensă — party, dans, energie maximă"
 
-def _format_energy_label(energy):
-    if energy < 0.25: return "calm"
-    elif energy < 0.5: return "moderate"
-    elif energy < 0.75: return "energetic"
-    else: return "intense"
+def _key_desc(key, mode):
+    descs = {
+        "C": "ton cald, accesibil, feels good",
+        "C#": "ton strălucitor, dramatic",
+        "D": "ton luminos, optimist",
+        "D#": "ton melancolic, profund",
+        "E": "ton cald, plin de viață",
+        "F": "ton pasional, romantic",
+        "F#": "ton misterios, intens",
+        "G": "ton vesel, natural",
+        "G#": "ton dramatic, cinematografic",
+        "A": "ton clar, sincer",
+        "A#": "ton puternic, emotional",
+        "B": "ton intim, vulnerabil",
+    }
+    base = descs.get(key, "ton neutru")
+    if mode == "minor":
+        base = base.replace("cald", "melancolic").replace("vesel", "nostalgic")
+    return f"{key} {mode} — {base}"
 
+def _valence_desc(v):
+    if v < 0.15: return "trist, melancolie profundă"
+    elif v < 0.3: return "melancolic, introspectiv"
+    elif v < 0.5: return "neutru, versatil"
+    elif v < 0.7: return "pozitiv, optimist"
+    else: return "euforic, plin de bucurie"
 
-def _format_valence_label(valence):
-    if valence < 0.15: return "sad"
-    elif valence < 0.35: return "melancholic"
-    elif valence < 0.55: return "neutral"
-    elif valence < 0.75: return "positive"
-    else: return "euphoric"
+def _wedding_score(features, is_explicit, thematic_issues):
+    """Calculate wedding suitability score 0-100."""
+    score = 80  # base
+    if not features:
+        return 50
+
+    energy = features.get("energy", 0.5)
+    valence = features.get("valence", 0.5)
+    acousticness = features.get("acousticness", 0)
+    instrumentalness = features.get("instrumentalness", 0)
+    danceability = features.get("danceability", 0)
+
+    # Positive
+    if 0.3 <= valence <= 0.8: score += 5
+    if acousticness > 0.5: score += 5
+    if instrumentalness > 0.5: score += 5
+    if 0.3 <= energy <= 0.7: score += 5
+    if danceability > 0.4: score += 3
+
+    # Negative
+    if is_explicit: score -= 40
+    if valence < 0.15: score -= 15
+    if energy > 0.9: score -= 10
+
+    high = [t for t in thematic_issues if "HIGH" in t.get("severity", "")]
+    med = [t for t in thematic_issues if "MEDIUM" in t.get("severity", "")]
+    score -= len(high) * 30
+    score -= len(med) * 15
+
+    return max(0, min(100, score))
+
+def _video_placements(features, thematic_issues):
+    """Generate detailed video placement suggestions."""
+    if not features:
+        return []
+
+    bpm = features.get("tempo", 0)
+    energy = features.get("energy", 0.5)
+    valence = features.get("valence", 0.5)
+    acousticness = features.get("acousticness", 0)
+    instrumentalness = features.get("instrumentalness", 0)
+
+    places = []
+
+    high = any("HIGH" in t.get("severity", "") for t in thematic_issues)
+    if high:
+        return []
+
+    if bpm < 85 or (energy < 0.3 and valence > 0.2):
+        places.append({"name": "Ceremony", "desc": "vows, walking down the aisle, first kiss"})
+    if energy < 0.5 and valence > 0.2:
+        places.append({"name": "First Dance", "desc": "slow dance, romantic spotlight"})
+    if valence > 0.3 or instrumentalness > 0.3:
+        places.append({"name": "Trailer", "desc": "emotional hook, anticipation"})
+    if 80 < bpm < 140:
+        places.append({"name": "Highlights Reel", "desc": "flow natural peste toată nunta"})
+    if energy < 0.6:
+        places.append({"name": "Getting Ready", "desc": "intimate, real moments"})
+    if bpm > 100 or energy > 0.5:
+        places.append({"name": "Reception / Party", "desc": "softer moments, toasts, dance"})
+    if instrumentalness > 0.5 or acousticness > 0.5:
+        places.append({"name": "Cinematic Film", "desc": "full wedding film, montaj artistic"})
+
+    return places[:6]
 
 
 def format_result_json(result: dict) -> dict:
-    """Format analysis result as structured JSON for the web frontend."""
+    """Format analysis result matching Telegram bot style."""
 
     # Error cases
     if result.get("error"):
         error_messages = {
-            "not_identified": "Couldn't identify this track. Try typing the artist and song name instead.",
-            "not_found": f"No results found for: {result.get('query', '')}. Try a different spelling.",
-            "youtube_not_supported": "YouTube link support coming soon. Type the song name instead.",
-            "unsupported_url": "This link type isn't supported. Try a Spotify link or type the song name.",
+            "not_identified": "Nu am putut identifica piesa. Încearcă să scrii numele artistului și piesei.",
+            "not_found": f"Niciun rezultat pentru: {result.get('query', '')}. Încearcă altă ortografie.",
+            "youtube_not_supported": "Link-urile YouTube nu sunt suportate încă. Scrie numele piesei.",
+            "unsupported_url": "Acest tip de link nu e suportat. Încearcă un link Spotify sau scrie numele piesei.",
         }
         return {
             "error": result["error"],
-            "message": error_messages.get(result["error"], f"Something went wrong: {result['error']}")
+            "message": error_messages.get(result["error"], f"Ceva nu a mers: {result['error']}")
         }
 
     track = result.get("track", {})
@@ -289,9 +375,106 @@ def format_result_json(result: dict) -> dict:
     explicit = result.get("explicit", {})
     wedding = result.get("wedding", {})
     cr = result.get("copyright", {})
+    thematic = wedding.get("thematic", [])
+    is_explicit = track.get("is_explicit", False)
 
-    # Build structured response
-    response = {
+    # Wedding score
+    score = _wedding_score(features, is_explicit, thematic)
+
+    # Quick verdict
+    if score >= 80:
+        quick_verdict = "DA, e PERFECT pentru nuntă! ✅✅"
+    elif score >= 60:
+        quick_verdict = "Merge cu atenție — verifică notele de mai jos ⚠️"
+    elif score >= 40:
+        quick_verdict = "Riscant — are probleme tematice sau de conținut ⚠️"
+    else:
+        quick_verdict = "NU e recomandat pentru nuntă ❌"
+
+    # Mood & Vibe
+    mood_items = []
+    if features:
+        bpm = features.get("tempo", 0)
+        energy = features.get("energy", 0.5)
+        valence = features.get("valence", 0.5)
+        key = features.get("key", "?")
+        mode = features.get("mode", "")
+        acousticness = features.get("acousticness", 0)
+        danceability = features.get("danceability", 0)
+
+        # Overall mood
+        if valence > 0.6 and energy > 0.5:
+            mood_items.append("Optimist, hopeful, inspirational")
+        elif valence > 0.5 and energy < 0.4:
+            mood_items.append("Calm, romantic, dreamy")
+        elif valence < 0.3 and energy < 0.3:
+            mood_items.append("Melancolic, introspectiv, profund")
+        elif valence < 0.3 and energy > 0.5:
+            mood_items.append("Dramatic, intens, cinematic")
+        elif energy > 0.7:
+            mood_items.append("Energic, party, celebrare")
+        else:
+            mood_items.append("Echilibrat, versatil, natural")
+
+        mood_items.append(f"{int(bpm)} BPM — {_bpm_desc(bpm)}")
+        mood_items.append(f"Energie {energy:.2f} — {_energy_desc(energy)}")
+        mood_items.append(_key_desc(key, mode))
+
+        if danceability > 0.6:
+            mood_items.append(f"Danceability ridicată ({danceability:.2f}) — ritm contagios")
+        if acousticness > 0.5:
+            mood_items.append(f"Acustic ({acousticness:.2f}) — ton organic, natural")
+
+    # Video placements
+    placements = _video_placements(features, thematic)
+
+    # Copyright details
+    copyright_details = []
+    label_name = cr.get("label", "Unknown")
+    if label_name and label_name != "Unknown":
+        copyright_details.append(f"Label: {label_name}")
+    copyright_details.append(cr.get("note", ""))
+
+    copyright_actions = []
+    if "High" in cr.get("risk", ""):
+        copyright_actions = [
+            "E pe Artlist sau Epidemic Sound? (royalty-free libraries)",
+            "E pe DistroKid? (independent artist)",
+            "Are Creative Commons license?",
+            "Dacă e din stock music — care-i licența exactă?",
+        ]
+        copyright_warning = "NU o folosi pe Instagram/YouTube public fără să știi licensing-ul."
+    elif "Medium" in cr.get("risk", ""):
+        copyright_actions = [
+            "Verifică dacă e royalty-free sau licențiat",
+            "Caută pe Artlist, Epidemic Sound, sau Musicbed",
+        ]
+        copyright_warning = "Verifică înainte de a publica pe social media."
+    else:
+        copyright_actions = []
+        copyright_warning = ""
+
+    # Final verdict
+    if score >= 80:
+        final_music = f"Muzical? PERFECT. {score}/100. 🎵"
+    elif score >= 60:
+        final_music = f"Muzical? Bun cu rezerve. {score}/100."
+    else:
+        final_music = f"Muzical? Problematic. {score}/100."
+
+    if "High" in cr.get("risk", "") or "Medium" in cr.get("risk", ""):
+        final_legal = "Legal? NECUNOSCUT — verifică acum!"
+    else:
+        final_legal = "Legal? Risc scăzut — probabil safe."
+
+    # Lyrics preview
+    lyrics_preview = None
+    lyrics_text = lyrics_data.get("lyrics")
+    if lyrics_text:
+        preview_lines = [l for l in lyrics_text.split("\n") if l.strip()][:6]
+        lyrics_preview = "\n".join(preview_lines)
+
+    return {
         "success": True,
         "track": {
             "title": track.get("title", "Unknown"),
@@ -302,53 +485,35 @@ def format_result_json(result: dict) -> dict:
             "spotify_url": track.get("spotify_url", ""),
             "source": track.get("source", ""),
         },
-        "features": None,
-        "verdict": {
-            "wedding": wedding.get("verdict", "Unknown"),
-            "explicit": explicit.get("label", "Unknown"),
-            "explicit_detail": explicit.get("detail", ""),
-            "copyright_risk": cr.get("risk", "Unknown"),
-            "copyright_note": cr.get("note", ""),
-            "copyright_label": cr.get("label", "Unknown"),
-            "copyright_disclaimer": cr.get("disclaimer", ""),
-            "placement": wedding.get("placement", []),
-            "issues": wedding.get("issues", []),
+        "header": {
+            "bpm": int(features.get("tempo", 0)) if features else None,
+            "key": f"{features.get('key', '?')} {features.get('mode', '')}" if features else None,
+            "score": score,
+            "copyright_status": cr.get("risk", "?"),
         },
-        "thematic": wedding.get("thematic", []),
+        "quick_verdict": quick_verdict,
+        "mood_items": mood_items,
+        "placements": placements,
+        "thematic": thematic,
+        "copyright": {
+            "risk": cr.get("risk", "?"),
+            "details": copyright_details,
+            "actions": copyright_actions,
+            "warning": copyright_warning,
+            "label": label_name,
+        },
+        "explicit": explicit.get("label", "✅ Clean"),
+        "final_verdict": {
+            "music": final_music,
+            "legal": final_legal,
+            "score": score,
+        },
         "lyrics": {
-            "preview": None,
+            "preview": lyrics_preview,
             "url": lyrics_data.get("url"),
             "source": lyrics_data.get("source", "none"),
         },
     }
-
-    # Audio features
-    if features:
-        bpm = features.get("tempo", 0)
-        energy = features.get("energy", 0)
-        valence = features.get("valence", 0)
-        response["features"] = {
-            "bpm": bpm,
-            "bpm_label": _format_bpm_label(bpm),
-            "key": features.get("key", "?"),
-            "mode": features.get("mode", ""),
-            "energy": round(energy * 100),
-            "energy_label": _format_energy_label(energy),
-            "danceability": round(features.get("danceability", 0) * 100),
-            "valence": round(valence * 100),
-            "valence_label": _format_valence_label(valence),
-            "acousticness": round(features.get("acousticness", 0) * 100),
-            "instrumentalness": round(features.get("instrumentalness", 0) * 100),
-            "source": features.get("source", ""),
-        }
-
-    # Lyrics preview
-    lyrics_text = lyrics_data.get("lyrics")
-    if lyrics_text:
-        preview_lines = [l for l in lyrics_text.split("\n") if l.strip()][:6]
-        response["lyrics"]["preview"] = "\n".join(preview_lines)
-
-    return response
 
 
 # ═══════════════════════════════════════════════════════════

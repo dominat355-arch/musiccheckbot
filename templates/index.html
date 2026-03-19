@@ -178,13 +178,13 @@
             padding: 16px 20px;
             background: var(--surface-2);
             border-radius: var(--radius);
-            border-left: 3px solid var(--green);
+            border-left: 3px solid var(--accent);
             display: none;
         }
         .quick-id.visible { display: block; }
         .quick-id .qi-title {
             font-size: 13px;
-            color: var(--green);
+            color: var(--accent);
             font-weight: 600;
             margin-bottom: 4px;
             text-transform: uppercase;
@@ -214,7 +214,8 @@
             padding: 24px;
             margin-bottom: 16px;
         }
-        .result-card h2 {
+
+        .card-title {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -224,144 +225,384 @@
             border-bottom: 1px solid var(--border);
         }
 
-        /* Track info card */
-        .track-main {
-            margin-bottom: 12px;
+        /* ── Header Card (BPM, Key, Score, Copyright) ─── */
+        .header-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
         }
-        .track-main .artist {
-            font-size: 14px;
-            color: var(--accent);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .track-main .title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-top: 2px;
-            letter-spacing: -0.3px;
-        }
-        .track-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-top: 12px;
-        }
-        .meta-item {
-            font-size: 13px;
-            color: var(--text-dim);
-        }
-        .meta-item span { color: var(--text); font-weight: 500; }
 
-        /* Features grid */
-        .features-grid {
+        .header-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
         }
-        .feature-item {
-            background: var(--surface-2);
-            border-radius: 8px;
-            padding: 12px 14px;
+
+        .stat-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
         }
-        .feature-item .f-label {
+
+        .stat-icon {
+            font-size: 18px;
+            margin-top: 2px;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-label {
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--text-muted);
             margin-bottom: 4px;
         }
-        .feature-item .f-value {
+
+        .stat-value {
             font-size: 20px;
             font-weight: 700;
+            color: var(--text);
         }
-        .feature-item .f-desc {
+
+        .stat-desc {
             font-size: 12px;
             color: var(--text-dim);
             margin-top: 2px;
         }
-        .feature-item.wide {
-            grid-column: 1 / -1;
+
+        /* ── Quick Verdict Section ────────────────────── */
+        .quick-verdict-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
         }
 
-        /* Verdict card */
+        .quick-verdict-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .quick-verdict-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.4;
+        }
+
+        /* ── Mood & Vibe Section ─────────────────────── */
+        .mood-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .mood-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mood-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mood-item {
+            font-size: 14px;
+            color: var(--text-dim);
+            padding-left: 8px;
+        }
+
+        .mood-item::before {
+            content: '– ';
+            color: var(--accent);
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        /* ── Placements Section ──────────────────────── */
+        .placements-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .placements-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .placement-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .placement-item {
+            padding-left: 8px;
+        }
+
+        .placement-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .placement-name::before {
+            content: '✅ ';
+            margin-right: 6px;
+        }
+
+        .placement-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-left: 24px;
+        }
+
+        /* ── Copyright Risk Section ──────────────────── */
+        .copyright-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .copyright-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .copyright-status {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            border-left: 3px solid var(--orange);
+        }
+
+        .copyright-details {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .copyright-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .action-item {
+            font-size: 13px;
+            color: var(--text-dim);
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .action-item::before {
+            content: '☐ ';
+            position: absolute;
+            left: 0;
+            color: var(--text-muted);
+        }
+
+        .copyright-warning {
+            font-size: 12px;
+            color: var(--orange);
+            padding: 8px 12px;
+            background: var(--surface-2);
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .copyright-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ── Verdict Final Section ────────────────────── */
+        .final-verdict-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .final-verdict-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
         .verdict-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--surface-3);
+            align-items: flex-start;
+            padding: 12px 0;
+            gap: 16px;
         }
-        .verdict-row:last-child { border-bottom: none; }
-        .verdict-row .v-label {
+
+        .verdict-label {
             font-size: 13px;
             color: var(--text-dim);
+            font-weight: 500;
         }
-        .verdict-row .v-value {
+
+        .verdict-value {
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             text-align: right;
+            flex-shrink: 0;
         }
+
         .v-safe { color: var(--green); }
         .v-caution { color: var(--yellow); }
         .v-danger { color: var(--red); }
         .v-medium { color: var(--orange); }
 
-        .placement-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .placement-tag {
-            font-size: 12px;
-            padding: 4px 12px;
-            background: var(--surface-3);
-            border-radius: 20px;
+        .source-question {
+            font-size: 13px;
             color: var(--text-dim);
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-style: italic;
         }
 
-        /* Thematic warnings */
+        /* ── Thematic Warnings ────────────────────── */
+        .thematic-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .thematic-section.visible {
+            display: block;
+        }
+
+        .thematic-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .thematic-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .thematic-item {
             padding: 10px 14px;
             background: var(--surface-2);
             border-radius: 8px;
-            margin-bottom: 8px;
             border-left: 3px solid var(--red);
         }
+
         .thematic-item.medium { border-left-color: var(--orange); }
         .thematic-item.low { border-left-color: var(--yellow); }
-        .thematic-item .t-header {
+
+        .thematic-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 4px;
         }
-        .thematic-item .t-category {
+
+        .thematic-category {
             font-size: 13px;
             font-weight: 600;
+            color: var(--text);
         }
-        .thematic-item .t-severity {
+
+        .thematic-severity {
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
+            color: var(--text-muted);
         }
-        .thematic-item .t-example {
+
+        .thematic-example {
             font-size: 12px;
             color: var(--text-dim);
             font-style: italic;
-        }
-        .themes-clear {
-            padding: 12px 14px;
-            background: var(--surface-2);
-            border-radius: 8px;
-            border-left: 3px solid var(--green);
-            font-size: 13px;
-            color: var(--green);
-            font-weight: 500;
+            margin-top: 4px;
         }
 
-        /* Lyrics */
+        /* ── Lyrics Section ──────────────────────────── */
+        .lyrics-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .lyrics-section.visible {
+            display: block;
+        }
+
+        .lyrics-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
         .lyrics-preview {
             font-size: 13px;
             color: var(--text-dim);
@@ -372,31 +613,22 @@
             border-radius: 8px;
             margin-bottom: 12px;
         }
+
         .lyrics-link {
             font-size: 13px;
             color: var(--accent);
             text-decoration: none;
         }
+
         .lyrics-link:hover { text-decoration: underline; }
 
-        /* Notes */
-        .note-item {
-            font-size: 13px;
-            color: var(--text-dim);
-            padding: 6px 0;
-            padding-left: 12px;
-            border-left: 2px solid var(--border);
-            margin-bottom: 6px;
-        }
-        .disclaimer {
-            font-size: 11px;
+        .lyrics-source {
+            font-size: 12px;
             color: var(--text-muted);
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border);
+            margin-top: 8px;
         }
 
-        /* Error */
+        /* ── Error ────────────────────────────────────── */
         .error-msg {
             margin-top: 24px;
             padding: 16px 20px;
@@ -409,7 +641,7 @@
         }
         .error-msg.visible { display: block; }
 
-        /* Footer */
+        /* ── Footer ────────────────────────────────────── */
         .footer {
             text-align: center;
             padding: 32px 20px;
@@ -419,13 +651,14 @@
         .footer a { color: var(--accent-dim); text-decoration: none; }
         .footer a:hover { text-decoration: underline; }
 
-        /* ── Responsive ──────────────────────── */
+        /* ── Responsive ────────────────────────────────── */
         @media (max-width: 480px) {
             .header h1 { font-size: 22px; }
             .input-group { flex-direction: column; }
             .btn { text-align: center; }
-            .features-grid { grid-template-columns: 1fr; }
-            .track-main .title { font-size: 20px; }
+            .header-stats { grid-template-columns: 1fr; }
+            .verdict-row { flex-direction: column; align-items: flex-start; }
+            .verdict-value { text-align: left; }
         }
     </style>
 </head>
@@ -475,46 +708,58 @@
     <!-- Results -->
     <div class="results" id="results">
 
-        <!-- Track Info -->
-        <div class="result-card">
-            <h2>Track Info</h2>
-            <div class="track-main">
-                <div class="artist" id="rArtist"></div>
-                <div class="title" id="rTitle"></div>
-            </div>
-            <div class="track-meta" id="rMeta"></div>
+        <!-- 1. Header Card - BPM, Key, Score, Copyright Status -->
+        <div class="header-card" id="headerCard" style="display:none;">
+            <div class="header-stats" id="headerStats"></div>
         </div>
 
-        <!-- Audio Features -->
-        <div class="result-card" id="featuresCard" style="display:none;">
-            <h2>Audio Analysis</h2>
-            <div class="features-grid" id="featuresGrid"></div>
+        <!-- 2. Quick Verdict Section -->
+        <div class="quick-verdict-section" id="quickVerdictSection" style="display:none;">
+            <div class="quick-verdict-title">🎵 Analiza rapidă</div>
+            <div class="quick-verdict-text" id="quickVerdictText"></div>
         </div>
 
-        <!-- Verdict -->
-        <div class="result-card">
-            <h2>Video Editing Verdict</h2>
+        <!-- 3. Mood & Vibe Section -->
+        <div class="mood-section" id="moodSection" style="display:none;">
+            <div class="mood-title">Mood & Vibe</div>
+            <div class="mood-items" id="moodItems"></div>
+        </div>
+
+        <!-- 4. Placements Section -->
+        <div class="placements-section" id="placementsSection" style="display:none;">
+            <div class="placements-title">Unde merge în video</div>
+            <div class="placement-items" id="placementItems"></div>
+        </div>
+
+        <!-- 5. Copyright Risk Section -->
+        <div class="copyright-section" id="copyrightSection" style="display:none;">
+            <div class="copyright-title">⚠️ Copyright Risk</div>
+            <div class="copyright-status" id="copyrightStatus"></div>
+            <div class="copyright-details" id="copyrightDetails"></div>
+            <div class="copyright-actions" id="copyrightActions"></div>
+            <div class="copyright-warning" id="copyrightWarning"></div>
+            <div class="copyright-label" id="copyrightLabel"></div>
+        </div>
+
+        <!-- 6. Verdict Final Section -->
+        <div class="final-verdict-section" id="verdictSection" style="display:none;">
+            <div class="final-verdict-title">🎵 Verdict final</div>
             <div id="verdictRows"></div>
-            <div class="placement-tags" id="placementTags"></div>
+            <div class="source-question" id="sourceQuestion"></div>
         </div>
 
-        <!-- Thematic -->
-        <div class="result-card">
-            <h2>Thematic Analysis</h2>
-            <div id="thematicContent"></div>
+        <!-- 7. Thematic Warnings -->
+        <div class="thematic-section" id="thematicSection">
+            <div class="thematic-title">⚠️ Thematic Warnings</div>
+            <div class="thematic-items" id="thematicItems"></div>
         </div>
 
-        <!-- Lyrics -->
-        <div class="result-card" id="lyricsCard">
-            <h2>Lyrics</h2>
+        <!-- 8. Lyrics Preview -->
+        <div class="lyrics-section" id="lyricsSection">
+            <div class="lyrics-title">Lyrics</div>
             <div id="lyricsContent"></div>
         </div>
 
-        <!-- Notes -->
-        <div class="result-card" id="notesCard" style="display:none;">
-            <h2>Notes</h2>
-            <div id="notesContent"></div>
-        </div>
     </div>
 </div>
 
@@ -570,16 +815,10 @@ function setLoading(on) {
 function verdictClass(text) {
     if (!text) return '';
     const t = text.toLowerCase();
-    if (t.includes('safe') || t.includes('clean') || t.includes('low')) return 'v-safe';
-    if (t.includes('caution') || t.includes('medium') || t.includes('strong') || t.includes('partial')) return 'v-caution';
-    if (t.includes('not recommended') || t.includes('explicit') || t.includes('high') || t.includes('multiple')) return 'v-danger';
+    if (t.includes('perfect') || t.includes('safe') || t.includes('clean') || t.includes('low') || t.includes('✅')) return 'v-safe';
+    if (t.includes('caution') || t.includes('medium') || t.includes('strong') || t.includes('partial') || t.includes('🟡')) return 'v-caution';
+    if (t.includes('not recommended') || t.includes('explicit') || t.includes('high') || t.includes('multiple') || t.includes('🔴')) return 'v-danger';
     return 'v-medium';
-}
-
-function thematicClass(severity) {
-    if (severity.includes('HIGH')) return '';
-    if (severity.includes('MEDIUM')) return 'medium';
-    return 'low';
 }
 
 // ── Render Results ──────────────────────
@@ -589,138 +828,205 @@ function renderResults(data) {
         return;
     }
 
-    const t = data.track;
-    const f = data.features;
-    const v = data.verdict;
-    const th = data.thematic || [];
-    const ly = data.lyrics;
+    const track = data.track || {};
+    const header = data.header || {};
+    const quickVerdict = data.quick_verdict || '';
+    const moodItems = data.mood_items || [];
+    const placements = data.placements || [];
+    const copyright = data.copyright || {};
+    const finalVerdict = data.final_verdict || {};
+    const thematic = data.thematic || [];
+    const lyrics = data.lyrics || {};
 
-    // Track info
-    $('rArtist').textContent = t.artist;
-    $('rTitle').textContent = t.title;
+    // === 1. HEADER CARD ===
+    const headerCard = $('headerCard');
+    const headerStats = $('headerStats');
 
-    let metaHTML = '';
-    if (t.album) {
-        let albumText = t.album;
-        if (t.release_date) albumText += ` (${t.release_date.slice(0, 4)})`;
-        metaHTML += `<div class="meta-item">Album: <span>${albumText}</span></div>`;
+    let headerHTML = '';
+    if (header.bpm) {
+        headerHTML += `
+            <div class="stat-item">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-content">
+                    <div class="stat-label">BPM</div>
+                    <div class="stat-value">${header.bpm}</div>
+                </div>
+            </div>`;
     }
-    if (t.duration) metaHTML += `<div class="meta-item">Duration: <span>${t.duration}</span></div>`;
-    if (t.source) metaHTML += `<div class="meta-item">Source: <span>${t.source}</span></div>`;
-    if (t.spotify_url) metaHTML += `<div class="meta-item"><a href="${t.spotify_url}" target="_blank" style="color:var(--green);text-decoration:none;">Open in Spotify</a></div>`;
-    $('rMeta').innerHTML = metaHTML;
-
-    // Features
-    if (f) {
-        $('featuresCard').style.display = '';
-        $('featuresGrid').innerHTML = `
-            <div class="feature-item">
-                <div class="f-label">BPM</div>
-                <div class="f-value">${Math.round(f.bpm)}</div>
-                <div class="f-desc">${f.bpm_label}</div>
-            </div>
-            <div class="feature-item">
-                <div class="f-label">Key</div>
-                <div class="f-value">${f.key}</div>
-                <div class="f-desc">${f.mode}</div>
-            </div>
-            <div class="feature-item">
-                <div class="f-label">Energy</div>
-                <div class="f-value">${f.energy}%</div>
-                <div class="f-desc">${f.energy_label}</div>
-            </div>
-            <div class="feature-item">
-                <div class="f-label">Mood</div>
-                <div class="f-value">${f.valence}%</div>
-                <div class="f-desc">${f.valence_label}</div>
-            </div>
-            <div class="feature-item">
-                <div class="f-label">Danceability</div>
-                <div class="f-value">${f.danceability}%</div>
-            </div>
-            <div class="feature-item">
-                <div class="f-label">Acousticness</div>
-                <div class="f-value">${f.acousticness}%</div>
-            </div>
-            ${f.instrumentalness > 10 ? `
-            <div class="feature-item">
-                <div class="f-label">Instrumentalness</div>
-                <div class="f-value">${f.instrumentalness}%</div>
-            </div>` : ''}
-            ${f.source && f.source !== 'Spotify' ? `
-            <div class="feature-item wide">
-                <div class="f-label">Analysis Source</div>
-                <div class="f-desc">${f.source}</div>
-            </div>` : ''}
-        `;
-    } else {
-        $('featuresCard').style.display = 'none';
+    if (header.key) {
+        headerHTML += `
+            <div class="stat-item">
+                <div class="stat-icon">🎹</div>
+                <div class="stat-content">
+                    <div class="stat-label">Tonalitate</div>
+                    <div class="stat-value">${header.key}</div>
+                </div>
+            </div>`;
+    }
+    if (header.score !== undefined) {
+        headerHTML += `
+            <div class="stat-item">
+                <div class="stat-icon">🎬</div>
+                <div class="stat-content">
+                    <div class="stat-label">Potrivire nuntă</div>
+                    <div class="stat-value">${header.score}/100</div>
+                </div>
+            </div>`;
+    }
+    if (header.copyright_status) {
+        headerHTML += `
+            <div class="stat-item">
+                <div class="stat-icon">©</div>
+                <div class="stat-content">
+                    <div class="stat-label">Copyright</div>
+                    <div class="stat-value" style="font-size:16px">${header.copyright_status}</div>
+                </div>
+            </div>`;
     }
 
-    // Verdict
-    let verdictHTML = '';
-    verdictHTML += `<div class="verdict-row"><div class="v-label">Wedding use</div><div class="v-value ${verdictClass(v.wedding)}">${v.wedding}</div></div>`;
-    verdictHTML += `<div class="verdict-row"><div class="v-label">Explicit content</div><div class="v-value ${verdictClass(v.explicit)}">${v.explicit}</div></div>`;
-    verdictHTML += `<div class="verdict-row"><div class="v-label">Copyright risk</div><div class="v-value ${verdictClass(v.copyright_risk)}">${v.copyright_risk}</div></div>`;
-    if (v.copyright_label && v.copyright_label !== 'Unknown') {
-        verdictHTML += `<div class="verdict-row"><div class="v-label">Label</div><div class="v-value" style="color:var(--text-dim)">${v.copyright_label}</div></div>`;
+    if (headerHTML) {
+        headerStats.innerHTML = headerHTML;
+        headerCard.style.display = '';
     }
-    $('verdictRows').innerHTML = verdictHTML;
 
-    let placementHTML = '';
-    (v.placement || []).forEach(p => {
-        placementHTML += `<div class="placement-tag">${p}</div>`;
-    });
-    $('placementTags').innerHTML = placementHTML;
+    // === 2. QUICK VERDICT ===
+    const quickVerdictSection = $('quickVerdictSection');
+    if (quickVerdict) {
+        $('quickVerdictText').innerHTML = quickVerdict;
+        quickVerdictSection.style.display = '';
+    }
 
-    // Thematic
-    if (th.length > 0) {
-        let thHTML = '';
-        th.forEach(item => {
-            const cls = thematicClass(item.severity);
-            const example = item.examples && item.examples.length > 0 ? item.examples[0][1] : '';
-            thHTML += `
-                <div class="thematic-item ${cls}">
-                    <div class="t-header">
-                        <div class="t-category">${item.category}</div>
-                        <div class="t-severity">${item.severity}</div>
-                    </div>
-                    ${example ? `<div class="t-example">"${example}"</div>` : ''}
+    // === 3. MOOD & VIBE ===
+    const moodSection = $('moodSection');
+    if (moodItems.length > 0) {
+        let moodHTML = '';
+        moodItems.forEach(item => {
+            moodHTML += `<div class="mood-item">${item}</div>`;
+        });
+        $('moodItems').innerHTML = moodHTML;
+        moodSection.style.display = '';
+    }
+
+    // === 4. PLACEMENTS ===
+    const placementsSection = $('placementsSection');
+    if (placements.length > 0) {
+        let placementHTML = '';
+        placements.forEach(p => {
+            const name = typeof p === 'string' ? p : p.name || '';
+            const desc = typeof p === 'object' ? p.desc || '' : '';
+            placementHTML += `
+                <div class="placement-item">
+                    <div class="placement-name">${name}</div>
+                    ${desc ? `<div class="placement-desc">${desc}</div>` : ''}
                 </div>`;
         });
-        $('thematicContent').innerHTML = thHTML;
+        $('placementItems').innerHTML = placementHTML;
+        placementsSection.style.display = '';
+    }
+
+    // === 5. COPYRIGHT RISK ===
+    const copyrightSection = $('copyrightSection');
+    if (copyright && Object.keys(copyright).length > 0) {
+        if (copyright.risk) {
+            $('copyrightStatus').textContent = `Risk: ${copyright.risk}`;
+        }
+
+        if (copyright.details && Array.isArray(copyright.details)) {
+            $('copyrightDetails').innerHTML = copyright.details.map(d => typeof d === 'string' ? d : d.text || '').join('<br>');
+        }
+
+        if (copyright.actions && Array.isArray(copyright.actions)) {
+            let actionsHTML = '';
+            copyright.actions.forEach(action => {
+                const actionText = typeof action === 'string' ? action : action.text || '';
+                actionsHTML += `<div class="action-item">${actionText}</div>`;
+            });
+            $('copyrightActions').innerHTML = actionsHTML;
+        }
+
+        if (copyright.warning) {
+            $('copyrightWarning').textContent = copyright.warning;
+        } else {
+            $('copyrightWarning').style.display = 'none';
+        }
+
+        if (copyright.label) {
+            $('copyrightLabel').innerHTML = `<strong>Label:</strong> ${copyright.label}`;
+        } else {
+            $('copyrightLabel').style.display = 'none';
+        }
+
+        copyrightSection.style.display = '';
+    }
+
+    // === 6. FINAL VERDICT ===
+    const verdictSection = $('verdictSection');
+    if (finalVerdict && Object.keys(finalVerdict).length > 0) {
+        let verdictHTML = '';
+
+        if (finalVerdict.music) {
+            verdictHTML += `<div class="verdict-row"><div class="verdict-label">Muzical</div><div class="verdict-value ${verdictClass(finalVerdict.music)}">${finalVerdict.music}</div></div>`;
+        }
+        if (finalVerdict.legal) {
+            verdictHTML += `<div class="verdict-row"><div class="verdict-label">Legal</div><div class="verdict-value ${verdictClass(finalVerdict.legal)}">${finalVerdict.legal}</div></div>`;
+        }
+        if (finalVerdict.score !== undefined) {
+            verdictHTML += `<div class="verdict-row"><div class="verdict-label">Score</div><div class="verdict-value">${finalVerdict.score}/100</div></div>`;
+        }
+
+        $('verdictRows').innerHTML = verdictHTML;
+
+        if (finalVerdict.source_question) {
+            $('sourceQuestion').textContent = finalVerdict.source_question;
+        }
+
+        verdictSection.style.display = '';
+    }
+
+    // === 7. THEMATIC WARNINGS ===
+    const thematicSection = $('thematicSection');
+    if (thematic.length > 0) {
+        let thematicHTML = '';
+        thematic.forEach(item => {
+            let severityClass = '';
+            if (item.severity && item.severity.includes('MEDIUM')) severityClass = 'medium';
+            else if (item.severity && item.severity.includes('LOW')) severityClass = 'low';
+
+            const examples = item.examples ? (Array.isArray(item.examples) ? item.examples : [item.examples]) : [];
+            const exampleText = examples.length > 0 ? (typeof examples[0] === 'string' ? examples[0] : examples[0][1] || '') : '';
+
+            thematicHTML += `
+                <div class="thematic-item ${severityClass}">
+                    <div class="thematic-header">
+                        <div class="thematic-category">${item.category || ''}</div>
+                        <div class="thematic-severity">${item.severity || ''}</div>
+                    </div>
+                    ${exampleText ? `<div class="thematic-example">"${exampleText}"</div>` : ''}
+                </div>`;
+        });
+        $('thematicItems').innerHTML = thematicHTML;
+        thematicSection.classList.add('visible');
     } else {
-        $('thematicContent').innerHTML = '<div class="themes-clear">All clear — no problematic themes detected</div>';
+        thematicSection.classList.remove('visible');
     }
 
-    // Lyrics
-    let lyricsHTML = '';
-    if (ly && ly.preview) {
-        lyricsHTML += `<div class="lyrics-preview">${ly.preview}</div>`;
-    }
-    if (ly && ly.url) {
-        lyricsHTML += `<a class="lyrics-link" href="${ly.url}" target="_blank">View full lyrics →</a>`;
-    }
-    if (!lyricsHTML) {
-        lyricsHTML = '<div style="font-size:13px;color:var(--text-muted);">Lyrics not available</div>';
-    }
-    $('lyricsContent').innerHTML = lyricsHTML;
-
-    // Notes
-    const issues = v.issues || [];
-    const copyrightNote = v.copyright_note || '';
-    const disclaimer = v.copyright_disclaimer || '';
-    const notes = [...issues.filter(i => !i.startsWith('Theme:') && !i.startsWith('Note:'))];
-    if (copyrightNote) notes.push(copyrightNote);
-
-    if (notes.length > 0 || disclaimer) {
-        $('notesCard').style.display = '';
-        let notesHTML = '';
-        notes.forEach(n => { notesHTML += `<div class="note-item">${n}</div>`; });
-        if (disclaimer) notesHTML += `<div class="disclaimer">${disclaimer}</div>`;
-        $('notesContent').innerHTML = notesHTML;
+    // === 8. LYRICS ===
+    const lyricsSection = $('lyricsSection');
+    if (lyrics && (lyrics.preview || lyrics.url)) {
+        let lyricsHTML = '';
+        if (lyrics.preview) {
+            lyricsHTML += `<div class="lyrics-preview">${lyrics.preview}</div>`;
+        }
+        if (lyrics.url) {
+            lyricsHTML += `<a class="lyrics-link" href="${lyrics.url}" target="_blank">View full lyrics →</a>`;
+        }
+        if (lyrics.source) {
+            lyricsHTML += `<div class="lyrics-source">Source: ${lyrics.source}</div>`;
+        }
+        $('lyricsContent').innerHTML = lyricsHTML;
+        lyricsSection.classList.add('visible');
     } else {
-        $('notesCard').style.display = 'none';
+        lyricsSection.classList.remove('visible');
     }
 
     results.classList.add('visible');
@@ -729,7 +1035,6 @@ function renderResults(data) {
     // Scroll to results
     results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-
 
 // ── Search Handler ──────────────────────
 searchForm.addEventListener('submit', async (e) => {
@@ -761,7 +1066,6 @@ searchForm.addEventListener('submit', async (e) => {
         showError('Connection error. Please try again.');
     }
 });
-
 
 // ── Upload Handlers ─────────────────────
 uploadZone.addEventListener('click', () => audioInput.click());
@@ -812,7 +1116,6 @@ async function handleAudioUpload(file) {
     formData.append('audio', file);
 
     try {
-        // Full analysis (single request for simplicity)
         showStatus('Analyzing audio — this may take 10-15 seconds...');
         const resp = await fetch('/api/analyze/audio', {
             method: 'POST',
