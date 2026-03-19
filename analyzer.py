@@ -22,67 +22,109 @@ logger = logging.getLogger(__name__)
 
 THEMATIC_FLAGS = {
     "breakup": [
-        "break up", "breaking up", "broke up", "we're done", "we are done",
-        "goodbye", "let you go", "moving on", "it's over", "it is over",
-        "left me", "left you", "walk away", "walked away", "leaving you",
-        "goodbye forever", "last time", "never coming back", "fall apart",
-        "falling apart", "torn apart", "broken heart", "heartbreak",
-        "heartbroken", "heart is breaking", "crying over you", "without you",
-        "can't be together", "not meant to be", "never meant to be",
-        "should've let go", "too late for us", "too late now",
-        "used to love", "used to be", "what we had",
+        "break up with", "breaking up with", "broke up", "we're done",
+        "we are done", "goodbye forever", "it's over between",
+        "left me for", "walked away from me", "leaving you behind",
+        "never coming back to", "torn apart from you",
+        "broken heart", "heartbreak", "heartbroken", "heart is breaking",
+        "crying over you", "can't be together", "not meant to be",
+        "never meant to be", "should've let go", "too late for us",
+        "used to love you", "what we had is gone",
     ],
     "infidelity": [
-        "cheating", "cheat on", "cheated on", "another woman", "another man",
-        "another girl", "another guy", "side piece", "side chick",
-        "affair", "behind my back", "behind your back", "sneak around",
-        "sneaking around", "lied to me", "lied to you", "two-timing",
-        "playing games", "played me", "played you",
-        "you were with her", "you were with him", "saw you with",
-        "sleeping with", "sleeping around", "other woman", "other man",
-        "unfaithful", "betray", "betrayed", "betrayal",
+        "cheating on", "cheat on", "cheated on", "another woman",
+        "another man", "another girl", "another guy", "side piece",
+        "side chick", "affair", "behind my back", "behind your back",
+        "sneak around", "sneaking around", "lied to me", "lied to you",
+        "two-timing", "played me", "played you",
+        "you were with her", "you were with him",
+        "sleeping with someone", "sleeping around", "other woman",
+        "unfaithful", "betrayed my trust", "betrayed me",
     ],
     "violence": [
-        "blood", "bleeding", "bleed", "kill", "killed", "killing",
-        "murder", "murdered", "shoot", "shot", "gun", "knife",
-        "stabbed", "stab", "cut me", "cut you", "wound", "wounded",
-        "punch", "fighting", "beat you", "beat me", "weapon", "destroy",
-        "burn it down", "set fire", "revenge", "pull the trigger",
+        "bleeding out", "bleed out", "kill you", "kill him", "kill her",
+        "killed him", "killed her", "killing me inside",
+        "murder", "murdered", "shoot you", "shoot him", "shoot her",
+        "shot him", "shot her", "gun to", "pulled a knife",
+        "stabbed", "stab you", "cut me open", "cut you up",
+        "punch you", "beat you up", "beat me up", "weapon",
+        "burn it all down", "set fire to", "revenge on you",
+        "pull the trigger on",
     ],
     "death": [
-        "die", "died", "dying", "death", "dead", "funeral",
-        "grave", "graveyard", "cemetery", "bury", "buried",
-        "suicide", "end my life", "kill myself", "want to die",
-        "better off dead", "six feet under", "gone forever",
-        "never wake up", "last breath", "rest in peace",
+        "want to die", "suicide", "end my life", "kill myself",
+        "better off dead", "six feet under",
+        "funeral", "graveyard", "cemetery",
+        "never wake up", "rest in peace",
     ],
     "criminal": [
-        "cocaine", "heroin", "smoke weed",
-        "getting high", "get high", "getting wasted", "wasted",
-        "prison", "jail", "locked up", "handcuffs", "arrest",
-        "run from the cops", "on the run", "stolen", "stealing",
-        "robbery", "dealer", "dealing", "criminal",
+        "cocaine", "heroin", "smoke weed", "smoking weed",
+        "getting high on", "getting wasted",
+        "prison cell", "locked up in", "handcuffs on",
+        "run from the cops", "on the run from",
+        "robbery", "drug dealer", "dealing drugs",
     ],
     "toxic": [
-        "hate you", "i hate you", "hate myself",
-        "i despise", "despise you", "you disgust me",
-        "worthless", "you're worthless", "pathetic", "you're nothing",
-        "meant nothing", "you mean nothing", "toxic", "poison",
-        "manipulate", "manipulating", "controlling",
-        "abuse", "abusive", "scream at",
-        "i don't love you", "never loved you", "never loved me",
-        "fell out of love", "stop loving",
+        "i hate you", "hate myself", "hate you so",
+        "i despise you", "you disgust me",
+        "you're worthless", "you're nothing to me",
+        "you mean nothing", "toxic love", "poison me",
+        "manipulate me", "manipulating me", "controlling me",
+        "abuse me", "abusive", "scream at me",
+        "never loved you", "never loved me",
+        "fell out of love with",
     ],
     "dark_emotion": [
-        "so alone", "all alone", "completely alone", "no one cares",
-        "nobody cares", "nobody loves", "no one loves",
-        "can't go on", "can't keep going", "give up",
-        "given up", "nothing left", "nothing matters",
-        "empty inside", "feel nothing", "numb", "hopeless",
-        "lost everything", "hit rock bottom", "at rock bottom",
-        "falling apart", "falling down", "sinking", "drowning in",
+        "so alone in", "completely alone", "no one cares about",
+        "nobody cares about", "nobody loves me", "no one loves me",
+        "can't go on anymore", "can't keep going",
+        "given up on everything", "nothing left for me",
+        "nothing matters anymore", "empty inside",
+        "feel nothing anymore", "numb to everything", "hopeless",
+        "lost everything i", "hit rock bottom",
     ],
 }
+
+# ═══════════════════════════════════════════════════════════
+# SAFE CONTEXT — lines containing these are likely romantic/metaphorical
+# and should NOT trigger thematic warnings
+# ═══════════════════════════════════════════════════════════
+
+SAFE_CONTEXTS = [
+    # Romantic/wedding-positive phrases that neutralize nearby keywords
+    "fighting for", "fighting against all odds", "fight for you",
+    "fight for us", "fight for love", "fighting for love",
+    "die for you", "die without you", "i'd die for",
+    "dying to", "dying for your", "to die for",
+    "killing me softly", "you're killing me",
+    "shot through the heart", "shot me down with",
+    "take my breath away", "breathless",
+    "set fire to my heart", "set my heart on fire",
+    "you destroy me", "destroyed by love",
+    "blood rushing", "blood pumping", "in my blood",
+    "drowning in your love", "drowning in your eyes",
+    "falling for you", "fall for you", "falling in love",
+    "grave mistake", "dead serious", "dead wrong",
+    "goodbye to being", "goodbye to my",
+    "let you go from my mind",
+    "without you i'm", "nothing without you",
+    "moving on to", "moving on up",
+    "alone with you", "never alone",
+    "poison of your kiss", "addicted to your love",
+    "steal my heart", "stolen my heart", "stole my heart",
+    "burn for you", "burning love", "burning desire",
+    "on fire for you", "heart on fire",
+    "beat of my heart", "heart beat", "heartbeat",
+    "give up everything for you",
+    "lost in your", "lost in love",
+    "high on love", "high on you", "high on life",
+    "hit me like", "hit different",
+    "cut through the noise", "cut to the feeling",
+    "blow my mind", "mind-blowing",
+    "weapon of choice", "secret weapon",
+    "sinking into your", "sinking feeling of love",
+    "numb to the world",
+]
 
 SEVERITY = {
     "violence": "🔴 HIGH",
@@ -105,20 +147,35 @@ LABELS = {
 }
 
 
+def _line_has_safe_context(line_lower: str) -> bool:
+    """Check if a lyric line contains a safe/romantic context that neutralizes keywords."""
+    return any(safe in line_lower for safe in SAFE_CONTEXTS)
+
+
 def thematic_scan(lyrics_text: str) -> list:
-    """Scan lyrics for wedding-inappropriate themes."""
+    """Scan lyrics for wedding-inappropriate themes with context awareness.
+
+    Uses safe-context detection to avoid false positives from
+    romantic/metaphorical uses of strong words (e.g. 'fighting for love',
+    'die for you', 'shot through the heart').
+    """
     if not lyrics_text:
         return []
 
     findings = []
     lyrics_lower = lyrics_text.lower()
+    lines = lyrics_text.split("\n")
 
     for category, phrases in THEMATIC_FLAGS.items():
         matched = []
         for phrase in phrases:
             if phrase in lyrics_lower:
-                for line in lyrics_text.split("\n"):
-                    if phrase in line.lower() and line.strip():
+                for line in lines:
+                    line_lower = line.lower()
+                    if phrase in line_lower and line.strip():
+                        # Skip if the line has a safe romantic/metaphorical context
+                        if _line_has_safe_context(line_lower):
+                            continue
                         matched.append((phrase, line.strip()[:80]))
                         break
                 if len(matched) >= 2:
