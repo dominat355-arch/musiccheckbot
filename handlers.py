@@ -76,24 +76,19 @@ async def cmd_debug(update: Update, context: ContextTypes.DEFAULT_TYPE):
     import time as _time
     lines = ["🔧 API Connection Test\n"]
 
-    # Test Spotify
+    # Test MusicBrainz (primary search)
     try:
-        from spotify_client import _get_client
+        from spotify_client import search_track
         t0 = _time.time()
-        sp = _get_client()
-        if sp:
-            results = sp.search(q="test", type="track", limit=1)
-            items = results.get("tracks", {}).get("items", [])
-            elapsed = _time.time() - t0
-            if items:
-                lines.append(f"✅ Spotify: OK ({elapsed:.1f}s) — found '{items[0]['name']}'")
-            else:
-                lines.append(f"⚠️ Spotify: Connected but no results ({elapsed:.1f}s)")
+        result = search_track("Ed Sheeran Perfect")
+        elapsed = _time.time() - t0
+        if result:
+            lines.append(f"✅ Search: OK ({elapsed:.1f}s) — '{result.get('artist')} - {result.get('title')}' via {result.get('source')}")
         else:
-            lines.append("❌ Spotify: Client not initialized (check credentials)")
+            lines.append(f"❌ Search: No results ({elapsed:.1f}s)")
     except Exception as e:
         elapsed = _time.time() - t0
-        lines.append(f"❌ Spotify: {str(e)[:100]} ({elapsed:.1f}s)")
+        lines.append(f"❌ Search: {str(e)[:100]} ({elapsed:.1f}s)")
 
     # Test Genius
     try:
